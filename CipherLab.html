@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CipherLab — Enkripsi Klasik</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* TEMA SAGE GREEN & TERRACOTTA */
+:root {
+  --bg-main: #f6f5f0;       
+  --bg-section: #e0e5df;    
+  --bg-darker: #c5d0c3;     
+  --surface: #ffffff;
+  --accent-orange: #e58253; 
+  --accent-orange-hover: #d26e40;
+  --accent-green: #7d9679;  
+  --text-main: #2d332c;
+  --text-muted: #6b7569;
+  --border: #d2d8d1;
+  --font: 'Nunito', system-ui, sans-serif;
+  --mono: 'Space Mono', monospace;
+  --radius-btn: 30px;
+  --radius-card: 24px;
+  --shadow: 0 10px 40px rgba(125, 150, 121, 0.1);
+  padding-top: env(safe-area-inset-top,0px);
+  padding-bottom: env(safe-area-inset-bottom,0px);
+}
+
+html,body{height:100%;background:var(--bg-main);color:var(--text-main);font-family:var(--font);font-size:16px;line-height:1.6;}
+body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;}
+
+/* Navbar */
+header{padding:1.5rem 2rem;background:var(--bg-main);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;}
+.logo-wrap {display:flex;align-items:center;gap:12px;}
+.logo-mark{width:42px;height:42px;border-radius:50%;background:var(--accent-green);display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.logo-text{font-size:20px;font-weight:800;color:var(--text-main);line-height:1.1;}
+.logo-sub{font-size:13px;color:var(--text-muted);}
+.header-right {display:flex;align-items:center;gap:16px;}
+.badge{font-size:12px;font-weight:700;color:var(--accent-orange);background:rgba(229, 130, 83, 0.15);padding:6px 14px;border-radius:var(--radius-btn);}
+
+/* Layout Main */
+main{flex:1;display:grid;grid-template-columns:260px 1fr;gap:2rem;padding: 1rem 2rem 2rem 2rem;} /* Padding top disesuaikan karena hero dihapus */
+
+/* Sidebar */
+aside{background:var(--surface);border-radius:var(--radius-card);padding:1.5rem;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);}
+.aside-label{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:8px;margin-top:4px}
+.method-btn{width:100%;text-align:left;padding:12px 16px;border-radius:20px;border:none;background:transparent;color:var(--text-muted);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .3s ease}
+.method-btn:hover{background:var(--bg-main);color:var(--text-main);}
+.method-btn.active{background:var(--accent-green);color:#fff;box-shadow: 0 8px 20px rgba(125, 150, 121, 0.3);}
+.method-btn .icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--bg-section);color:var(--text-main);}
+.method-btn.active .icon{background:rgba(255,255,255,0.2);color:#fff;}
+.method-tag{font-size:11px;padding:4px 10px;border-radius:12px;font-weight:800;margin-left:auto;}
+.tag-weak{background:rgba(255,255,255,0.8);color:var(--text-muted)}
+.method-btn.active .tag-weak{background:rgba(255,255,255,0.2);color:#fff;}
+.tag-mid{background:rgba(229,130,83,0.15);color:var(--accent-orange)}
+.method-btn.active .tag-mid{background:rgba(255,255,255,0.2);color:#fff;}
+
+aside hr{border:none;border-top:2px dashed var(--border);margin:16px 0}
+.info-side{padding:16px;border-radius:20px;background:var(--bg-section);font-size:13px;color:var(--text-main);margin-top:auto;}
+.info-side strong{color:var(--accent-green);font-weight:800;display:block;margin-bottom:12px;font-size:15px;}
+.info-row {display:flex;justify-content:space-between;margin-bottom:8px;font-weight:600;}
+.info-row span:first-child {color:var(--text-muted);font-weight:700;}
+
+/* Content */
+.content{background:var(--surface);border-radius:var(--radius-card);padding:2.5rem;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.pane{display:none;flex-direction:column;gap:1.5rem;animation:fadeIn .4s ease}
+.pane.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+
+.pane-title{font-size:28px;font-weight:800;color:var(--accent-green);}
+.pane-desc{font-size:15px;color:var(--text-muted);max-width:700px;line-height:1.7}
+
+.formula{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent-green);background:var(--bg-section);padding:10px 20px;border-radius:var(--radius-btn);margin-top:10px}
+
+/* Controls */
+.controls-row{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;background:var(--bg-main);padding:1.5rem;border-radius:20px;margin-bottom:1rem;}
+.ctrl-group{display:flex;flex-direction:column;gap:8px}
+.ctrl-label{font-size:13px;color:var(--text-muted);font-weight:700;}
+input[type=number],input[type=text],select{background:var(--surface);border:2px solid var(--border);color:var(--text-main);font-family:var(--font);font-size:15px;font-weight:600;padding:12px 18px;border-radius:var(--radius-btn);outline:none;transition:all .2s ease}
+input[type=number]{width:100px}
+input[type=number]:focus,input[type=text]:focus,select:focus{border-color:var(--accent-green);}
+select{min-width:220px;cursor:pointer}
+
+/* IO Grid */
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.io-box{background:var(--bg-main);border:2px solid var(--bg-section);border-radius:20px;display:flex;flex-direction:column;transition:all .3s ease;overflow:hidden;}
+.io-box:focus-within{border-color:var(--accent-green);background:var(--surface);box-shadow:var(--shadow);}
+.io-header{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--bg-section);}
+.io-title{font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.io-title.in-label{color:var(--text-muted)}
+.io-title.out-label{color:var(--accent-orange)}
+.io-count{font-size:12px;color:var(--text-muted);font-weight:700;}
+textarea{flex:1;background:transparent;border:none;color:var(--text-main);font-family:var(--mono);font-size:15px;padding:20px;resize:none;outline:none;min-height:200px}
+.io-result{flex:1;font-family:var(--mono);font-size:15px;padding:20px;min-height:200px;word-break:break-all;white-space:pre-wrap;color:var(--text-main);}
+.io-result.empty{color:var(--text-muted);font-style:italic;}
+
+/* Buttons */
+.action-row{display:flex;gap:12px;align-items:center;margin-top:1rem;}
+button.btn{padding:12px 28px;border-radius:var(--radius-btn);border:none;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:all .2s ease}
+button.btn-primary{background:var(--accent-orange);color:#fff;box-shadow:0 8px 20px rgba(229,130,83,0.3)}
+button.btn-primary:hover{background:var(--accent-orange-hover);transform:translateY(-2px)}
+button.btn-ghost{background:var(--bg-section);color:var(--accent-green);}
+button.btn-ghost:hover{background:var(--bg-darker);color:var(--text-main);}
+button.btn-icon{padding:8px 16px;font-size:13px;}
+.sep{width:2px;height:24px;background:var(--border);margin:0 8px}
+
+/* Keymap & Rot */
+.keymap-wrap{background:var(--bg-main);border-radius:20px;padding:20px;margin-bottom:1rem;}
+.keymap-title{font-size:14px;font-weight:800;color:var(--text-main);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.keymap-grid{display:grid;grid-template-columns:repeat(26,1fr);gap:6px}
+.km-cell{text-align:center;padding:8px 4px;border-radius:12px;background:var(--surface);border:2px solid var(--border);transition:all .2s}
+.km-plain{font-size:11px;color:var(--text-muted);font-weight:700;}
+.km-cipher{font-size:14px;font-family:var(--mono);font-weight:800;color:var(--accent-orange);margin-top:4px}
+
+.rot-visual{display:flex;gap:0;border-radius:20px;overflow:hidden;border:2px solid var(--bg-section);margin-bottom:1rem;}
+.rot-row{flex:1;padding:16px;text-align:center;font-family:var(--mono);font-size:13px;background:var(--surface);}
+.rot-row:first-child{border-right:2px solid var(--bg-section);}
+.rot-row .rr-label{color:var(--text-muted);margin-bottom:8px;font-size:11px;font-weight:800;letter-spacing:1px}
+.rot-row .rr-chars{color:var(--text-main);letter-spacing:3px;font-weight:700;word-break:break-all;line-height:2}
+
+/* Toast */
+.toast{position:fixed;bottom:30px;right:30px;background:var(--accent-green);color:#fff;font-size:14px;font-weight:700;padding:14px 28px;border-radius:var(--radius-btn);opacity:0;transform:translateY(20px);transition:all .4s ease;pointer-events:none;box-shadow:var(--shadow);z-index:50}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:900px){
+  main{grid-template-columns:1fr;}
+  aside{flex-direction:row;overflow-x:auto;padding:1rem;}
+  .aside-label,.info-side,aside hr{display:none}
+  .method-btn{width:auto;white-space:nowrap;padding:10px 16px;}
+  .io-grid{grid-template-columns:1fr}
+  .keymap-grid{grid-template-columns:repeat(13,1fr);}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="10" height="10" rx="2"/><rect x="12" y="7" width="10" height="10" rx="2"/><path d="M7 7V5a2 2 0 0 1 4 0v2M12 12h5"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">CipherLab</div>
+      <div class="logo-sub">Enkripsi Klasik & Aman</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge">Kriptografi</span>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <div class="aside-label">Pilih Metode</div>
+
+    <button class="method-btn active" onclick="setMethod('caesar')">
+      <div class="icon">🔀</div>
+      <div>
+        <div>Caesar Cipher</div>
+        <div style="font-size:12px;font-weight:400;margin-top:2px">Geser N posisi</div>
+      </div>
+    </button>
+
+    <button class="method-btn" onclick="setMethod('rot13')">
+      <div class="icon">🔄</div>
+      <div>
+        <div>ROT13</div>
+        <div style="font-size:12px;font-weight:400;margin-top:2px">Geser 13 posisi</div>
+      </div>
+    </button>
+
+    <button class="method-btn" onclick="setMethod('vigenere')">
+      <div class="icon">✨</div>
+      <div>
+        <div>Vigenère Cipher</div>
+        <div style="font-size:12px;font-weight:400;margin-top:2px">Geser dengan kunci</div>
+      </div>
+    </button>
+
+    <button class="method-btn" onclick="setMethod('mono')">
+      <div class="icon">🗝️</div>
+      <div>
+        <div>Monoalfabetik</div>
+        <div style="font-size:12px;font-weight:400;margin-top:2px">Substitusi acak</div>
+      </div>
+    </button>
+
+    <button class="method-btn" onclick="setMethod('atbash')">
+      <div class="icon">🪞</div>
+      <div>
+        <div>Atbash</div>
+        <div style="font-size:12px;font-weight:400;margin-top:2px">Alfabet dibalik</div>
+      </div>
+    </button>
+
+    <hr>
+
+    <div class="info-side">
+      <strong>Biodata</strong>
+      <div class="info-row"><span>Nama</span><span>Bilal</span></div>
+      <div class="info-row"><span>NIM</span><span style="font-family:var(--mono)">2511095</span></div>
+      <div class="info-row"><span>Kelas</span><span style="font-family:var(--mono)">IFB5J</span></div>
+      <div class="info-row"><span>Jurusan</span><span>Informatika</span></div>
+      <div class="info-row" style="flex-direction:column;gap:4px">
+        <span>Kampus</span>
+        <span style="text-align:left">Universitas Mulia Balikpapan</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content">
+
+    <!-- CAESAR -->
+    <div class="pane active" id="pane-caesar">
+      <div class="pane-header">
+        <div class="pane-title">Caesar Cipher</div>
+        <div class="pane-desc">Setiap huruf digeser sebanyak N posisi dalam alfabet. Metode enkripsi paling awal yang tercatat dalam sejarah, digunakan Julius Caesar sekitar 58 SM.</div>
+        <div class="formula">E(x) = (x + n) mod 26 &nbsp;|&nbsp; D(x) = (x − n + 26) mod 26</div>
+      </div>
+
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Key Shift</span>
+          <input type="number" id="caesar-n" value="3" min="1" max="25" oninput="caesarAuto()">
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Mode</span>
+          <select id="caesar-mode" onchange="caesarAuto()">
+            <option value="enc">Enkripsi (Plaintext → Ciphertext)</option>
+            <option value="dec">Dekripsi (Ciphertext → Plaintext)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="io-grid">
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title in-label">INPUT</span>
+            <span class="io-count" id="caesar-count">0 karakter</span>
+          </div>
+          <textarea id="caesar-in" placeholder="Ketik teks di sini..." oninput="caesarAuto()"></textarea>
+        </div>
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title out-label">OUTPUT</span>
+            <button class="btn btn-ghost btn-icon" onclick="copyResult('caesar-out')">Salin</button>
+          </div>
+          <div class="io-result empty" id="caesar-out">Hasil akan muncul di sini...</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="caesarAuto()">Proses</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" onclick="swapIO('caesar-in','caesar-out');caesarAuto()">Balik IO</button>
+        <button class="btn btn-ghost" onclick="clearAll('caesar-in','caesar-out','caesar-count')">Bersihkan</button>
+      </div>
+    </div>
+
+    <!-- ROT13 -->
+    <div class="pane" id="pane-rot13">
+      <div class="pane-header">
+        <div class="pane-title">ROT13</div>
+        <div class="pane-desc">Varian Caesar dengan shift tetap 13. Karena 13 × 2 = 26, enkripsi dan dekripsi menggunakan operasi yang sama.</div>
+        <div class="formula">ROT13(ROT13(x)) = x</div>
+      </div>
+
+      <div class="rot-visual">
+        <div class="rot-row"><div class="rr-label">A–M</div><div class="rr-chars">A B C D E F G H I J K L M</div></div>
+        <div class="rot-row" style="background:var(--bg-section)"><div class="rr-label" style="color:var(--accent-green)">↕ ROT13</div><div class="rr-chars" style="color:var(--accent-green)">N O P Q R S T U V W X Y Z</div></div>
+      </div>
+
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Mode</span>
+          <select id="rot13-mode" onchange="rot13Auto()">
+            <option value="enc">Enkripsi</option>
+            <option value="dec">Dekripsi</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="io-grid">
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title in-label" id="rot13-in-label">INPUT</span>
+            <span class="io-count" id="rot13-count">0 karakter</span>
+          </div>
+          <textarea id="rot13-in" placeholder="Ketik teks di sini..." oninput="rot13Auto()"></textarea>
+        </div>
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title out-label" id="rot13-out-label">OUTPUT</span>
+            <button class="btn btn-ghost btn-icon" onclick="copyResult('rot13-out')">Salin</button>
+          </div>
+          <div class="io-result empty" id="rot13-out">Hasil akan muncul di sini...</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="rot13Auto()">Proses</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" onclick="swapIO('rot13-in','rot13-out');rot13Auto()">Balik IO</button>
+        <button class="btn btn-ghost" onclick="clearAll('rot13-in','rot13-out','rot13-count')">Bersihkan</button>
+      </div>
+    </div>
+
+    <!-- VIGENERE -->
+    <div class="pane" id="pane-vigenere">
+      <div class="pane-header">
+        <div class="pane-title">Vigenère Cipher</div>
+        <div class="pane-desc">Metode enkripsi polialfabetik yang menggunakan kata kunci untuk menggeser setiap huruf. Sangat aman di eranya.</div>
+        <div class="formula">E(x) = (x + k) mod 26 &nbsp;|&nbsp; D(x) = (x − k + 26) mod 26</div>
+      </div>
+
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Kata Kunci (Key)</span>
+          <input type="text" id="vigenere-key" value="AESTHETIC" placeholder="Ketik kunci..." oninput="vigenereAuto()">
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Mode</span>
+          <select id="vigenere-mode" onchange="vigenereAuto()">
+            <option value="enc">Enkripsi</option>
+            <option value="dec">Dekripsi</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="io-grid">
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title in-label" id="vigenere-in-label">INPUT</span>
+            <span class="io-count" id="vigenere-count">0 karakter</span>
+          </div>
+          <textarea id="vigenere-in" placeholder="Ketik teks di sini..." oninput="vigenereAuto()"></textarea>
+        </div>
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title out-label" id="vigenere-out-label">OUTPUT</span>
+            <button class="btn btn-ghost btn-icon" onclick="copyResult('vigenere-out')">Salin</button>
+          </div>
+          <div class="io-result empty" id="vigenere-out">Hasil akan muncul di sini...</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="vigenereAuto()">Proses</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" onclick="swapIO('vigenere-in','vigenere-out');vigenereAuto()">Balik IO</button>
+        <button class="btn btn-ghost" onclick="clearAll('vigenere-in','vigenere-out','vigenere-count')">Bersihkan</button>
+      </div>
+    </div>
+
+    <!-- MONO -->
+    <div class="pane" id="pane-mono">
+      <div class="pane-header">
+        <div class="pane-title">Monoalfabetik</div>
+        <div class="pane-desc">Setiap huruf dipetakan ke huruf lain secara acak dan tetap. Jauh lebih kompleks daripada sekadar digeser.</div>
+        <div class="formula">26! kemungkinan kunci ≈ 4 × 10²⁶</div>
+      </div>
+
+      <div class="keymap-wrap">
+        <div class="keymap-title">
+          <span>Peta Kunci Aktif</span>
+          <button class="btn btn-ghost btn-icon" onclick="shuffleKey()">Acak Kunci Baru</button>
+        </div>
+        <div class="keymap-grid" id="km-grid"></div>
+      </div>
+
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Mode</span>
+          <select id="mono-mode" onchange="monoAuto()">
+            <option value="enc">Enkripsi</option>
+            <option value="dec">Dekripsi</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="io-grid">
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title in-label">INPUT</span>
+            <span class="io-count" id="mono-count">0 karakter</span>
+          </div>
+          <textarea id="mono-in" placeholder="Ketik teks di sini..." oninput="monoAuto()"></textarea>
+        </div>
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title out-label">OUTPUT</span>
+            <button class="btn btn-ghost btn-icon" onclick="copyResult('mono-out')">Salin</button>
+          </div>
+          <div class="io-result empty" id="mono-out">Hasil akan muncul di sini...</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="monoAuto()">Proses</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" onclick="swapIO('mono-in','mono-out');monoAuto()">Balik IO</button>
+        <button class="btn btn-ghost" onclick="clearAll('mono-in','mono-out','mono-count')">Bersihkan</button>
+      </div>
+    </div>
+
+    <!-- ATBASH -->
+    <div class="pane" id="pane-atbash">
+      <div class="pane-header">
+        <div class="pane-title">Atbash</div>
+        <div class="pane-desc">Alfabet dibalik: A menjadi Z, B menjadi Y. Tidak memerlukan kunci.</div>
+        <div class="formula">E(x) = D(x) = 25 − x</div>
+      </div>
+
+      <div class="rot-visual">
+        <div class="rot-row"><div class="rr-label">PLAIN</div><div class="rr-chars">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</div></div>
+        <div class="rot-row" style="background:var(--bg-section)"><div class="rr-label" style="color:var(--accent-green)">↕ ATBASH</div><div class="rr-chars" style="color:var(--accent-green)">Z Y X W V U T S R Q P O N M L K J I H G F E D C B A</div></div>
+      </div>
+
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Mode</span>
+          <select id="atbash-mode" onchange="atbashAuto()">
+            <option value="enc">Enkripsi</option>
+            <option value="dec">Dekripsi</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="io-grid">
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title in-label" id="atbash-in-label">INPUT</span>
+            <span class="io-count" id="atbash-count">0 karakter</span>
+          </div>
+          <textarea id="atbash-in" placeholder="Ketik teks di sini..." oninput="atbashAuto()"></textarea>
+        </div>
+        <div class="io-box">
+          <div class="io-header">
+            <span class="io-title out-label" id="atbash-out-label">OUTPUT</span>
+            <button class="btn btn-ghost btn-icon" onclick="copyResult('atbash-out')">Salin</button>
+          </div>
+          <div class="io-result empty" id="atbash-out">Hasil akan muncul di sini...</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="atbashAuto()">Proses</button>
+        <div class="sep"></div>
+        <button class="btn btn-ghost" onclick="swapIO('atbash-in','atbash-out');atbashAuto()">Balik IO</button>
+        <button class="btn btn-ghost" onclick="clearAll('atbash-in','atbash-out','atbash-count')">Bersihkan</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast">✨ Hasil disalin ke clipboard!</div>
+
+<script>
+const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let monoKey = [];
+
+// ── Tab navigation ──────────────────────────────────────
+function setMethod(m) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + m).classList.add('active');
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// ── Caesar Cipher ────────────────────────────────────────
+function caesarShift(str, n, dir) {
+  n = ((n % 26) + 26) % 26;
+  if (dir === 'dec') n = (26 - n) % 26;
+  return str.replace(/[a-zA-Z]/g, c => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode((c.charCodeAt(0) - base + n) % 26 + base);
+  });
+}
+function caesarAuto() {
+  const txt = document.getElementById('caesar-in').value;
+  const n   = parseInt(document.getElementById('caesar-n').value) || 3;
+  const dir = document.getElementById('caesar-mode').value;
+  document.getElementById('caesar-count').textContent = txt.length + ' karakter';
+  const el = document.getElementById('caesar-out');
+  if (!txt) { el.textContent = 'Hasil akan muncul di sini...'; el.className = 'io-result empty'; return; }
+  el.textContent = caesarShift(txt, n, dir);
+  el.className = 'io-result';
+}
+
+// ── ROT13 ────────────────────────────────────────────────
+function rot13(str) {
+  return str.replace(/[a-zA-Z]/g, c => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode((c.charCodeAt(0) - base + 13) % 26 + base);
+  });
+}
+function rot13Auto() {
+  const mode = document.getElementById('rot13-mode').value;
+  const enc = mode === 'enc';
+  document.getElementById('rot13-in-label').textContent  = enc ? 'INPUT'  : 'INPUT';
+  document.getElementById('rot13-out-label').textContent = enc ? 'OUTPUT' : 'OUTPUT';
+
+  const txt = document.getElementById('rot13-in').value;
+  document.getElementById('rot13-count').textContent = txt.length + ' karakter';
+  const el = document.getElementById('rot13-out');
+  if (!txt) { el.textContent = 'Hasil akan muncul di sini...'; el.className = 'io-result empty'; return; }
+  el.textContent = rot13(txt);
+  el.className = 'io-result';
+}
+
+// ── Vigenère Cipher ───────────────────────────────
+function vigenere(str, key, dir) {
+  if (!key) return str;
+  let keyIndex = 0;
+  const cleanKey = key.toUpperCase().replace(/[^A-Z]/g, '');
+  if (!cleanKey) return str;
+
+  return str.replace(/[a-zA-Z]/g, c => {
+    const isUpper = c <= 'Z';
+    const base = isUpper ? 65 : 97;
+    const charCode = c.charCodeAt(0) - base;
+    const keyShift = cleanKey.charCodeAt(keyIndex % cleanKey.length) - 65;
+    keyIndex++;
+
+    let resultShift;
+    if (dir === 'enc') {
+      resultShift = (charCode + keyShift) % 26;
+    } else {
+      resultShift = (charCode - keyShift + 26) % 26;
+    }
+    return String.fromCharCode(resultShift + base);
+  });
+}
+function vigenereAuto() {
+  const mode = document.getElementById('vigenere-mode').value;
+  const enc = mode === 'enc';
+  document.getElementById('vigenere-in-label').textContent  = enc ? 'INPUT'  : 'INPUT';
+  document.getElementById('vigenere-out-label').textContent = enc ? 'OUTPUT' : 'OUTPUT';
+
+  const txt = document.getElementById('vigenere-in').value;
+  const key = document.getElementById('vigenere-key').value;
+  document.getElementById('vigenere-count').textContent = txt.length + ' karakter';
+  
+  const el = document.getElementById('vigenere-out');
+  if (!txt) { el.textContent = 'Hasil akan muncul di sini...'; el.className = 'io-result empty'; return; }
+  
+  el.textContent = vigenere(txt, key, mode);
+  el.className = 'io-result';
+}
+
+// ── Monoalfabetik ────────────────────────────────────────
+function shuffleKey() {
+  let a = ALPHA.split('');
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  monoKey = a;
+  renderKeymap();
+  monoAuto();
+}
+function renderKeymap() {
+  const g = document.getElementById('km-grid');
+  g.innerHTML = '';
+  for (let i = 0; i < 26; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'km-cell';
+    cell.innerHTML = `<div class="km-plain">${ALPHA[i]}</div><div class="km-cipher">${monoKey[i]}</div>`;
+    g.appendChild(cell);
+  }
+}
+function monoAuto() {
+  const txt = document.getElementById('mono-in').value;
+  const dir = document.getElementById('mono-mode').value;
+  document.getElementById('mono-count').textContent = txt.length + ' karakter';
+  const el = document.getElementById('mono-out');
+  if (!txt) { el.textContent = 'Hasil akan muncul di sini...'; el.className = 'io-result empty'; return; }
+  const result = txt.replace(/[a-zA-Z]/g, c => {
+    const upper = c.toUpperCase();
+    if (dir === 'enc') {
+      const idx = ALPHA.indexOf(upper);
+      const r = monoKey[idx];
+      return c === upper ? r : r.toLowerCase();
+    } else {
+      const idx = monoKey.indexOf(upper);
+      if (idx < 0) return c;
+      return c === upper ? ALPHA[idx] : ALPHA[idx].toLowerCase();
+    }
+  });
+  el.textContent = result;
+  el.className = 'io-result';
+}
+
+// ── Atbash ───────────────────────────────────────────────
+function atbash(str) {
+  return str.replace(/[a-zA-Z]/g, c => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode(base + (25 - (c.charCodeAt(0) - base)));
+  });
+}
+function atbashAuto() {
+  const enc = document.getElementById('atbash-mode').value === 'enc';
+  document.getElementById('atbash-in-label').textContent  = enc ? 'INPUT'  : 'INPUT';
+  document.getElementById('atbash-out-label').textContent = enc ? 'OUTPUT' : 'OUTPUT';
+
+  const txt = document.getElementById('atbash-in').value;
+  document.getElementById('atbash-count').textContent = txt.length + ' karakter';
+  const el = document.getElementById('atbash-out');
+  if (!txt) { el.textContent = 'Hasil akan muncul di sini...'; el.className = 'io-result empty'; return; }
+  el.textContent = atbash(txt);
+  el.className = 'io-result';
+}
+
+// ── Helpers ──────────────────────────────────────────────
+function copyResult(id) {
+  const txt = document.getElementById(id).textContent;
+  if (!txt || txt.includes('muncul di sini')) return;
+  navigator.clipboard.writeText(txt).then(() => showToast());
+}
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function swapIO(inId, outId) {
+  const outTxt = document.getElementById(outId).textContent;
+  if (!outTxt || outTxt.includes('muncul di sini')) return;
+  document.getElementById(inId).value = outTxt;
+}
+function clearAll(inId, outId, countId) {
+  document.getElementById(inId).value = '';
+  const el = document.getElementById(outId);
+  el.textContent = 'Hasil akan muncul di sini...';
+  el.className = 'io-result empty';
+  if (countId) document.getElementById(countId).textContent = '0 karakter';
+}
+
+// Init
+shuffleKey();
+</script>
+</body>
+</html>
